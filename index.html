@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Concepto SUBA</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; color: #333; margin: 0; padding: 20px; }
+        h1, h2, h3 { color: #0056b3; }
+        .main-container, .documentation-container { max-width: 1200px; margin: 20px auto; display: flex; flex-wrap: wrap; gap: 20px; }
+        .view-container { flex: 1; min-width: 450px; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        #app-view-content { background-color: #e9f5ff; border: 1px dashed #aed6f1; padding: 10px; border-radius: 8px; position: relative; height: 600px; }
+        .stop-node { position: absolute; text-align: center; transform: translate(-50%, -50%); z-index: 5; }
+        .stop-icon { width: 50px; height: 50px; border-radius: 50%; border: 3px solid #007bff; background-color: white; box-shadow: 0 2px 4px rgba(0,0,0,0.2); font-size: 28px; display: flex; align-items: center; justify-content: center; }
+        .stop-node p { margin-top: 5px; font-size: 12px; font-weight: bold; color: #0056b3; white-space: nowrap; }
+        .shape-node { position: absolute; width: 10px; height: 10px; background-color: #888; border-radius: 50%; border: 2px solid white; transform: translate(-50%, -50%); z-index: 4; }
+        .segment { position: absolute; background-color: #999; height: 5px; transform-origin: 0 0; z-index: 3; }
+        #bus-icon { position: absolute; width: 40px; height: 40px; background-color: #ffc107; border: 2px solid #c79100; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; transform: translate(-50%, -50%); transition: top 0.5s linear, left 0.5s linear; z-index: 10; box-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        iframe { width: 100%; height: 400px; border: 1px solid #ddd; border-radius: 4px; }
+        #stop-list ul { list-style: none; padding: 0; font-size: 14px; }
+        #stop-list li { background-color: #f8f9fa; padding: 8px; border-radius: 4px; margin-bottom: 5px; }
+        #stop-list li strong { color: #007bff; }
+        textarea { width: 100%; height: 60px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; font-family: monospace; margin-bottom: 10px; }
+        .button { display: inline-block; text-decoration: none; text-align: center; width: 100%; box-sizing: border-box; padding: 10px; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-bottom: 15px; }
+        .button-test { background-color: #28a745; }
+        .button-test:hover { background-color: #218838; }
+        .button-map { background-color: #007bff; }
+        .button-map:hover { background-color: #0056b3; }
+        #calc-output { margin-top: 20px; background: #222; color: #0f0; padding: 15px; border-radius: 5px; font-family: 'Courier New', Courier, monospace; white-space: pre-wrap; font-size: 13px; max-height: 250px; overflow-y: auto;}
+        .documentation-container { display: block; }
+        .documentation-container h3 { border-bottom: 2px solid #eee; padding-bottom: 5px; }
+        .documentation-container p, .documentation-container li { line-height: 1.6; }
+        .documentation-container code { background-color: #eee; padding: 2px 5px; border-radius: 3px; font-family: 'Courier New', Courier, monospace; }
+    </style>
+</head>
+<body>
+
+<div style="max-width: 1200px; margin: auto; padding: 0 20px;">
+    <h1>CONCEPTO SUBA</h1>
+</div>
+
+<div class="main-container">
+    <div class="view-container">
+        <h2>App View (Simulación)</h2>
+        <div id="app-view-content">
+            <div id="bus-icon">🚌</div>
+        </div>
+    </div>
+    <div class="view-container">
+        <h2>Vista Real y Controles</h2>
+        <a href="https://maps.app.goo.gl/6aY66deyURLksHQBA" target="_blank" class="button button-map">Ver Ruta Completa en Google Maps</a>
+        <iframe src="https://www.google.com/maps/embed?pb=!1m47!1m12!1m3!1d13366.310456702859!2d-62.74092656543979!3d8.282625968028512!2m3!1f0!2f0!3f0!3m2!1i1024!i768!4f13.1!4m32!3e0!4m5!1s0x8dcbfbd7c3f38473%3A0x5ffb05b097c62dd8!2sAlta%20Vista!3m2!1d8.293783099999999!2d-62.731365!4m5!1s0x8dcbfbd83b42106b%3A0xe4389acaea51bc16!2sJard%C3%ADn%20Levante!3m2!1d8.2914846!2d-62.7305174!4m4!1s0x8dcbfbdcf36ffc19%3A0x26d8e08d5840f329!3m2!1d8.285295!2d-62.7231574!4m3!3m2!1d8.282620999999999!2d-62.723804699999995!4m3!3m2!1d8.2795603!2d-62.7277608!4m5!1s0x8dcbf9574b894b25%3A0x335f3889fed32b59!2sUNEG!3m2!1d8.271944099999999!2d-62.7380061!5e1!3m2!1ses!2sve!4v1763009534332!5m2!1ses!2sve" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <h3>Coordenadas de Simulación</h3>
+        <div id="stop-list"></div>
+        <label for="coords-input">Ingresa coordenadas (latitud, longitud) 
+		//Usa Maps para obtener ubicaciones dentro de la ruta:</label>
+        <textarea id="coords-input">8.28828, -62.72905</textarea>
+        <button id="test-btn" class="button button-test">Testear Ubicación</button>
+        <h3>Registro de Cálculos</h3>
+        <div id="calc-output">Esperando testeo...</div>
+    </div>
+</div>
+
+<div class="documentation-container view-container">
+    <h2>Documentación de la idea (Fuentes:creanme)</h2>
+    
+    <h3>1. Planteamiento del Problema y Solución</h3>
+    <p>Se supone que el objetivo es desarrollar un sistema de bajo costo (pq no hay ma) para tener un tracking de autobuses de la UNEG, los cuales solo cuentan con un teléfono móvil (quiero creer) que emite su ubicación GPS a intervalos no frecuentes (ej. 3 minutos). Esta solucion o planteamiento no aporta una vista en vivo como Yuumi o Ridery pero mientras mas frecuente sea la ubicacion aportada por el celfon del chofer es mayor la precision para la aplicacion.</p>
+    <p>La arquitectura implementada se basa en el <strong>procesamiento del lado del cliente</strong>. Nuestra aplicacion en teoria ya deberia de contar con la ruta pues... son dos (ida y vuelta) y, posteriormente, solo recibe las coordenadas periódicas del autobús. Todos los cálculos para determinar la ubicación estimada se realizan localmente en el dispositivo del usuario. Esto minimiza drásticamente la carga del servidor y hace que la aplicación sea más resiliente a fallos de conexión (pq solo pide un ID y un fokin numero cada cierto tiempo xd).</p>
+
+    <h3>2. Componentes del Modelo</h3>
+    <ul>
+        <li><strong>Nodos de Ruta:</strong> Son puntos geográficos (latitud, longitud) que definen la ruta. Se dividen en dos tipos:
+            <ul>
+                <li><strong>Paradas (Stops):</strong> Nodos visibles para el usuario que representan una parada oficial (La parada de los olivos, villa asia etc).</li>
+                <li><strong>Puntos de Forma (Shape Points):</strong> Nodos invisibles cuyo único propósito es modelar las curvas y giros de la ruta real, permitiendo que la ruta digital sea una aproximación de alta fidelidad de la ruta física. El algoritmo de Haversine calcula lineas rectas por lo que las curvas de una calle son inentendibles, por lo mismo recogi ubicaciones intermedias para modelar los tramos</li>
+            </ul>
+        </li>
+        <li><strong>Geocerca Circular (Geofence):</strong> Es un perímetro virtual circular definido alrededor de cada <strong>Parada</strong>. Consiste en un punto central (la coordenada de la parada) y un radio (ej. 50 metros) que determina la tolerancia para cada punto. Su función es determinar si el autobús ha entrado en el área de una parada.</li>
+        <li><strong>Segmentos de Ruta:</strong> Son las líneas rectas que conectan dos nodos de ruta consecutivos. La ruta completa es una secuencia de segmentos conectados.</li>
+    </ul>
+
+    <h3>3. El Algoritmo de Localización (Snap-to-Road)</h3>
+    <p>Cada vez que la aplicación recibe una nueva coordenada del autobús, ejecuta el siguiente algoritmo en dos fases:</p>
+    
+    <h4>Fase 1: Verificación de Paradas mediante Geocercas</h4>
+    <p>El sistema itera sobre todas las paradas principales y calcula la distancia directa entre el autobús y cada parada. Para este cálculo, se utiliza la <strong>Fórmula de Haversine</strong>.</p>
+    
+    <h5>Desglose de la Fórmula de Haversine</h5>
+    <p>Esta fórmula calcula la distancia de "gran círculo" (la más corta sobre la superficie de una esfera) entre dos puntos geográficos.</p>
+    <ol>
+        <li><strong>Conversión a Radianes:</strong> Las funciones trigonométricas requieren ángulos en radianes, por lo que todas las latitudes y longitudes se convierten de grados a radianes.</li>
+        <li><strong>Cálculo de Deltas:</strong> Se calcula la diferencia de latitud (Δlat) y longitud (Δlon) entre los dos puntos.</li>
+        <li><strong>Cálculo de 'a':</strong> Se aplica la parte central de la fórmula: <code>a = sin²(Δlat/2) + cos(lat₁) * cos(lat₂) * sin²(Δlon/2)</code>. Esta variable representa el cuadrado de la mitad de la longitud de la cuerda entre los dos puntos.</li>
+        <li><strong>Cálculo de 'c':</strong> Se calcula la distancia angular: <code>c = 2 * atan2(√a, √(1-a))</code>.</li>
+        <li><strong>Distancia Final:</strong> Se multiplica la distancia angular <code>c</code> por el radio de la Tierra (aprox. 6,371 km) para obtener la distancia final en metros.</li>
+    </ol>
+    <p>Si la <code>distancia calculada ≤ radio de la geocerca</code>, el algoritmo concluye que el autobús está en esa parada y termina.</p>
+
+    <h4>Fase 2: Verificación de Tramos (Si no está en una Parada)</h4>
+    <p>Si el autobús no está dentro de ninguna geocerca, el sistema debe encontrar el segmento de ruta más cercano.</p>
+    <ol>
+        <li><strong>Proyección a un Plano 2D:</strong> Dado que las calles son tramos cortos, la curvatura de la Tierra es despreciable. El algoritmo proyecta las coordenadas del autobús y del segmento a un plano cartesiano (X, Y) en metros. Esto permite usar geometría euclidiana simple y rápida.</li>
+        <li><strong>Proyección de Vectores:</strong> Se utiliza el producto punto para proyectar la posición del autobús sobre la línea del segmento. Esto calcula un parámetro <code>t</code> que indica la ubicación del punto más cercano en la línea. Si <code>0 ≤ t ≤ 1</code>, el punto más cercano está dentro del segmento; de lo contrario, está en una de las terminaciones (nodos).</li>
+        <li><strong>Cálculo de Distancia Perpendicular:</strong> Usando el Teorema de Pitágoras, se calcula la distancia entre la posición del autobús y el punto más cercano encontrado en el segmento.</li>
+        <li><strong>Decisión Final:</strong> El algoritmo itera sobre todos los segmentos y se queda con el que produzca la menor distancia. Si esta <code>distancia mínima ≤ tolerancia de ruta</code> (ej. 35 metros), se concluye que el autobús está en ese tramo. De lo contrario, se considera "fuera de ruta".</li>
+    </ol>
+</div>
+
+<script>
+    let routePoints = [
+        { id: 'P01', name: 'Alta Vista', lat: 8.293783, lon: -62.731365, type: 'stop' },
+        { id: 'P02', name: 'Jardín Levante', lat: 8.291485, lon: -62.730517, type: 'stop' },
+        { id: 'S01', lat: 8.288892, lon: -62.729533, type: 'shape' },
+        { id: 'S02', lat: 8.287608, lon: -62.728603, type: 'shape' },
+        { id: 'S03', lat: 8.286021, lon: -62.727349, type: 'shape' },
+        { id: 'S04', lat: 8.285419, lon: -62.725913, type: 'shape' },
+        { id: 'P03', name: 'La Churuata', lat: 8.285295, lon: -62.723157, type: 'stop' },
+        { id: 'S05', lat: 8.284229, lon: -62.722697, type: 'shape' },
+        { id: 'S06', lat: 8.283824, lon: -62.722845, type: 'shape' },
+        { id: 'S07', lat: 8.283292, lon: -62.723285, type: 'shape' },
+        { id: 'P04', name: 'UNEG Villa Asia', lat: 8.282621, lon: -62.723805, type: 'stop' },
+        { id: 'S08', lat: 8.281416, lon: -62.724750, type: 'shape' },
+        { id: 'S09', lat: 8.280634, lon: -62.725863, type: 'shape' },
+        { id: 'P05', name: 'UNEXPO', lat: 8.279560, lon: -62.727761, type: 'stop' },
+        { id: 'S10', lat: 8.278594, lon: -62.727118, type: 'shape' },
+        { id: 'S11', lat: 8.276450, lon: -62.730674, type: 'shape' },
+        { id: 'S12', lat: 8.273940, lon: -62.734797, type: 'shape' },
+        { id: 'S13', lat: 8.272908, lon: -62.736523, type: 'shape' },
+        { id: 'S14', lat: 8.271814, lon: -62.738584, type: 'shape' },
+        { id: 'P06', name: 'UNEG', lat: 8.271944, lon: -62.738006, type: 'stop' },
+    ];
+
+    const segments = [];
+    for (let i = 0; i < routePoints.length - 1; i++) {
+        segments.push({ id: `SEG_${routePoints[i].id}-${routePoints[i+1].id}`, start: routePoints[i].id, end: routePoints[i+1].id });
+    }
+
+    const STOP_RADIUS_METERS = 50; 
+    const ROUTE_TOLERANCE_METERS = 35;
+    const EARTH_RADIUS_METERS = 6371000;
+
+    function toRad(degrees) { return degrees * Math.PI / 180; }
+
+    /**
+     * Calcula la distancia de gran círculo entre dos puntos geográficos usando la fórmula de Haversine.
+     */
+    function haversineDistance(coords1, coords2) {
+        // Paso 1: Calcular la diferencia (delta) de latitudes y longitudes, y convertirlas a radianes.
+        const dLat = toRad(coords2.lat - coords1.lat);
+        const dLon = toRad(coords2.lon - coords1.lon);
+        const lat1Rad = toRad(coords1.lat);
+        const lat2Rad = toRad(coords2.lat);
+
+        // Paso 2: Aplicar la parte 'a' de la fórmula.
+        // Esto calcula el cuadrado de la mitad de la longitud de la cuerda entre los puntos.
+        const a = Math.sin(dLat / 2) ** 2 + Math.sin(dLon / 2) ** 2 * Math.cos(lat1Rad) * Math.cos(lat2Rad);
+        
+        // Paso 3: Calcular la distancia angular 'c'.
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        
+        // Paso 4: Calcular la distancia final multiplicando 'c' por el radio de la Tierra.
+        return EARTH_RADIUS_METERS * c;
+    }
+
+    /**
+     * Encuentra la distancia perpendicular más corta desde un punto (bus) a un segmento de línea.
+     */
+    function findNearestPointOnSegment(busCoords, startCoords, endCoords) {
+        // Paso 1: Proyectar las coordenadas a un plano cartesiano 2D (en metros) para usar geometría simple.
+        // Se establece el punto de inicio del segmento como el origen (0,0).
+        const p2 = projectToMeters(endCoords, startCoords);
+        const busP = projectToMeters(busCoords, startCoords);
+        const len_sq = p2.x ** 2 + p2.y ** 2;
+
+        if (len_sq === 0) return { distance: haversineDistance(busCoords, startCoords), t: 0 };
+        
+        // Paso 2: Calcular el producto punto para proyectar el vector del bus sobre el vector del segmento.
+        const dot = busP.x * p2.x + busP.y * p2.y;
+        
+        // Paso 3: Calcular el parámetro 't'. 't' representa la proporción a lo largo del segmento donde se encuentra el punto más cercano.
+        // Se limita entre 0 y 1 para asegurar que el punto esté DENTRO del segmento.
+        let t = Math.max(0, Math.min(1, dot / len_sq));
+        
+        // Paso 4: Calcular las coordenadas (X, Y) del punto más cercano (cP) en el segmento.
+        const cP = { x: t * p2.x, y: t * p2.y };
+        
+        // Paso 5: Usar el Teorema de Pitágoras para obtener la distancia final entre el bus y el punto más cercano.
+        const distance = Math.sqrt((busP.x - cP.x) ** 2 + (busP.y - cP.y) ** 2);
+        
+        return { distance, t };
+    }
+    
+    function projectToMeters(target, origin) { const dLat = target.lat - origin.lat, dLon = target.lon - origin.lon; return { x: dLon * (111320 * Math.cos(toRad(origin.lat))), y: dLat * 111132.954 }; }
+    function locateBus(busCoords) { let log = `--- ANALIZANDO: ${busCoords.lat.toFixed(6)}, ${busCoords.lon.toFixed(6)} ---\n\n`; log += `1. Verificando Paradas (Radio: ${STOP_RADIUS_METERS}m):\n`; const stopsOnly = routePoints.filter(p => p.type === 'stop'); for (const stop of stopsOnly) { const d = haversineDistance(busCoords, stop); log += `   - Distancia a ${stop.name}: ${d.toFixed(2)}m\n`; if (d <= STOP_RADIUS_METERS) { log += `\nDECISIÓN: En PARADA "${stop.name}".`; return { type: 'stop', id: stop.id, log }; } } log += `\nNo está en ninguna parada.\n2. Verificando Tramos (Tolerancia: ${ROUTE_TOLERANCE_METERS}m):\n`; let bestMatch = { distance: Infinity, segment: null, t: 0 }; for (const segment of segments) { const start = routePoints.find(p => p.id === segment.start), end = routePoints.find(p => p.id === segment.end), result = findNearestPointOnSegment(busCoords, start, end); log += `   - Distancia al tramo ${segment.id}: ${result.distance.toFixed(2)}m\n`; if (result.distance < bestMatch.distance) { bestMatch = { distance: result.distance, segment: segment, t: result.t }; } } if (bestMatch.distance <= ROUTE_TOLERANCE_METERS) { log += `\nDECISIÓN: En TRAMO "${bestMatch.segment.id}" (a ${bestMatch.distance.toFixed(2)}m de la línea).`; return { type: 'segment', id: bestMatch.segment.id, t: bestMatch.t, log }; } log += "\nDECISIÓN: FUERA DE RUTA."; return { type: 'off-route', log }; }
+    function mapGeoToPixels(points) { const padding = 0.15, lats = points.map(p => p.lat), lons = points.map(p => p.lon), minLat = Math.min(...lats), maxLat = Math.max(...lats), minLon = Math.min(...lons), maxLon = Math.max(...lons), latRange = maxLat - minLat, lonRange = maxLon - minLon; return points.map(p => { p.x = ((p.lon - minLon) / lonRange * (1 - 2 * padding) + padding) * 100; p.y = (((p.lat - maxLat) / -latRange) * (1 - 2 * padding) + padding) * 100; return p; }); }
+    function renderSimpleView() { const container = document.getElementById('app-view-content'); container.innerHTML = '<div id="bus-icon">🚌</div>'; segments.forEach(seg => { const start = routePoints.find(p => p.id === seg.start), end = routePoints.find(p => p.id === seg.end), dx = (end.x - start.x) * (container.clientWidth / 100), dy = (end.y - start.y) * (container.clientHeight / 100), length = Math.sqrt(dx*dx + dy*dy), angle = Math.atan2(dy, dx) * (180 / Math.PI), el = document.createElement('div'); el.className = 'segment'; el.style.left = `${start.x}%`; el.style.top = `${start.y}%`; el.style.width = `${length}px`; el.style.transform = `rotate(${angle}deg)`; container.appendChild(el); }); routePoints.forEach(point => { const el = document.createElement('div'); if (point.type === 'stop') { el.className = 'stop-node'; el.innerHTML = `<div class="stop-icon">🏢</div><p>${point.name}</p>`; } else { el.className = 'shape-node'; } el.style.left = `${point.x}%`; el.style.top = `${point.y}%`; container.appendChild(el); }); }
+    function updateBusIconPosition(location) { const busIcon = document.getElementById('bus-icon'); if (location.type === 'stop') { const point = routePoints.find(p => p.id === location.id); busIcon.style.left = `${point.x}%`; busIcon.style.top = `${point.y}%`; } else if (location.type === 'segment') { const segment = segments.find(s => s.id === location.id), start = routePoints.find(p => p.id === segment.start), end = routePoints.find(p => p.id === segment.end), newX = start.x + (end.x - start.x) * location.t, newY = start.y + (end.y - start.y) * location.t; busIcon.style.left = `${newX}%`; busIcon.style.top = `${newY}%`; } else { busIcon.style.left = `-100px`; } }
+    
+    window.onload = () => {
+        routePoints = mapGeoToPixels(routePoints);
+        const listEl = document.createElement('ul');
+        routePoints.filter(p => p.type === 'stop').forEach(stop => { const item = document.createElement('li'); item.innerHTML = `<strong>${stop.name}:</strong> ${stop.lat}, ${stop.lon}`; listEl.appendChild(item); });
+        document.getElementById('stop-list').appendChild(listEl);
+        renderSimpleView();
+        document.getElementById('test-btn').addEventListener('click', () => { const input = document.getElementById('coords-input').value.trim(), [lat, lon] = input.split(/, ?/).map(Number); if (isNaN(lat) || isNaN(lon)) { document.getElementById('calc-output').textContent = "Error: Formato inválido."; return; } const location = locateBus({ lat, lon }); document.getElementById('calc-output').textContent = location.log; updateBusIconPosition(location); });
+        document.getElementById('test-btn').click();
+    };
+</script>
+
+</body>
+</html>
