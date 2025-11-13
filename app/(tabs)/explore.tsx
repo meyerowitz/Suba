@@ -27,8 +27,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   container: {
-    height: 300,
-    width: 300,
+    height: 400,
+    width: 400,
   },
   map: {
     flex: 1

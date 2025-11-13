@@ -27,7 +27,9 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      ["@rnmapbox/maps"],
+      [
+        "@rnmapbox/maps"
+      ],
       "expo-router",
       [
         "expo-splash-screen",
@@ -45,6 +47,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "09daf1a2-2b0b-44af-b426-b4f858488a13"
+      }
     }
   }
 }
