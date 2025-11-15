@@ -35,77 +35,14 @@
 </head>
 <body>
 
-<div style="max-width: 1200px; margin: auto; padding: 0 20px;">
-    <h1>CONCEPTO SUBA</h1>
-</div>
-
 <div class="main-container">
+
     <div class="view-container">
-        <h2>App View (Simulación)</h2>
-        <div id="app-view-content">
-            <div id="bus-icon">🚌</div>
-        </div>
-    </div>
-    <div class="view-container">
-        <h2>Vista Real y Controles</h2>
-        <a href="https://maps.app.goo.gl/6aY66deyURLksHQBA" target="_blank" class="button button-map">Ver Ruta Completa en Google Maps</a>
-        <iframe src="https://www.google.com/maps/embed?pb=!1m47!1m12!1m3!1d13366.310456702859!2d-62.74092656543979!3d8.282625968028512!2m3!1f0!2f0!3f0!3m2!1i1024!i768!4f13.1!4m32!3e0!4m5!1s0x8dcbfbd7c3f38473%3A0x5ffb05b097c62dd8!2sAlta%20Vista!3m2!1d8.293783099999999!2d-62.731365!4m5!1s0x8dcbfbd83b42106b%3A0xe4389acaea51bc16!2sJard%C3%ADn%20Levante!3m2!1d8.2914846!2d-62.7305174!4m4!1s0x8dcbfbdcf36ffc19%3A0x26d8e08d5840f329!3m2!1d8.285295!2d-62.7231574!4m3!3m2!1d8.282620999999999!2d-62.723804699999995!4m3!3m2!1d8.2795603!2d-62.7277608!4m5!1s0x8dcbf9574b894b25%3A0x335f3889fed32b59!2sUNEG!3m2!1d8.271944099999999!2d-62.7380061!5e1!3m2!1ses!2sve!4v1763009534332!5m2!1ses!2sve" referrerpolicy="no-referrer-when-downgrade"></iframe>
-        <h3>Coordenadas de Simulación</h3>
-        <div id="stop-list"></div>
-        <label for="coords-input">Ingresa coordenadas (latitud, longitud) 
-		//Usa Maps para obtener ubicaciones dentro de la ruta:</label>
-        <textarea id="coords-input">8.28828, -62.72905</textarea>
-        <button id="test-btn" class="button button-test">Testear Ubicación</button>
-        <h3>Registro de Cálculos</h3>
-        <div id="calc-output">Esperando testeo...</div>
+        <iframe src="https://www.google.com/maps/embed?pb=!1m47!1m12!1m3!1d13366.310456702859!2d-62.74092656543979!3d8.282625968028512!2m3!1f0!2f0!3f0!3m2!1i1024!i768!4f13.1!4m32!3e0!4m5!1s0x8dcbfbd7c3f38473%3A0x5ffb05b097c62dd8!2sAlta%20Vista!3m2!1d8.293783099999999!2d-62.731365!4m5!1s0x8dcbfbd83b42106b%3A0xe4389acaea51bc16!2sJard%C3%ADn%20Levante!3m2!1d8.2914846!2d-62.7305174!4m4!1s0x8dcbfbdcf36ffc19%3A0x26d8e08d5840f329!3m2!1d8.285295!2d-62.7231574!4m3!3m2!1d8.282620999999999!2d-62.723804699999995!4m3!3m2!1d8.2795603!2d-62.7277608!4m5!1s0x8dcbf9574b894b25%3A0x335f3889fed32b59!2sUNEG!3m2!1d8.271944099999999!2d-62.7380061!5e1!3m2!1ses!2sve!4v1763009534332!5m2!1ses!2sve" referrerpolicy="no-referrer-when-downgrade"></iframe>      
     </div>
 </div>
 
-<div class="documentation-container view-container">
-    <h2>Documentación de la idea (Fuentes:creanme)</h2>
-    
-    <h3>1. Planteamiento del Problema y Solución</h3>
-    <p>Se supone que el objetivo es desarrollar un sistema de bajo costo (pq no hay ma) para tener un tracking de autobuses de la UNEG, los cuales solo cuentan con un teléfono móvil (quiero creer) que emite su ubicación GPS a intervalos no frecuentes (ej. 3 minutos). Esta solucion o planteamiento no aporta una vista en vivo como Yuumi o Ridery pero mientras mas frecuente sea la ubicacion aportada por el celfon del chofer es mayor la precision para la aplicacion.</p>
-    <p>La arquitectura implementada se basa en el <strong>procesamiento del lado del cliente</strong>. Nuestra aplicacion en teoria ya deberia de contar con la ruta pues... son dos (ida y vuelta) y, posteriormente, solo recibe las coordenadas periódicas del autobús. Todos los cálculos para determinar la ubicación estimada se realizan localmente en el dispositivo del usuario. Esto minimiza drásticamente la carga del servidor y hace que la aplicación sea más resiliente a fallos de conexión (pq solo pide un ID y un fokin numero cada cierto tiempo xd).</p>
 
-    <h3>2. Componentes del Modelo</h3>
-    <ul>
-        <li><strong>Nodos de Ruta:</strong> Son puntos geográficos (latitud, longitud) que definen la ruta. Se dividen en dos tipos:
-            <ul>
-                <li><strong>Paradas (Stops):</strong> Nodos visibles para el usuario que representan una parada oficial (La parada de los olivos, villa asia etc).</li>
-                <li><strong>Puntos de Forma (Shape Points):</strong> Nodos invisibles cuyo único propósito es modelar las curvas y giros de la ruta real, permitiendo que la ruta digital sea una aproximación de alta fidelidad de la ruta física. El algoritmo de Haversine calcula lineas rectas por lo que las curvas de una calle son inentendibles, por lo mismo recogi ubicaciones intermedias para modelar los tramos</li>
-            </ul>
-        </li>
-        <li><strong>Geocerca Circular (Geofence):</strong> Es un perímetro virtual circular definido alrededor de cada <strong>Parada</strong>. Consiste en un punto central (la coordenada de la parada) y un radio (ej. 50 metros) que determina la tolerancia para cada punto. Su función es determinar si el autobús ha entrado en el área de una parada.</li>
-        <li><strong>Segmentos de Ruta:</strong> Son las líneas rectas que conectan dos nodos de ruta consecutivos. La ruta completa es una secuencia de segmentos conectados.</li>
-    </ul>
-
-    <h3>3. El Algoritmo de Localización (Snap-to-Road)</h3>
-    <p>Cada vez que la aplicación recibe una nueva coordenada del autobús, ejecuta el siguiente algoritmo en dos fases:</p>
-    
-    <h4>Fase 1: Verificación de Paradas mediante Geocercas</h4>
-    <p>El sistema itera sobre todas las paradas principales y calcula la distancia directa entre el autobús y cada parada. Para este cálculo, se utiliza la <strong>Fórmula de Haversine</strong>.</p>
-    
-    <h5>Desglose de la Fórmula de Haversine</h5>
-    <p>Esta fórmula calcula la distancia de "gran círculo" (la más corta sobre la superficie de una esfera) entre dos puntos geográficos.</p>
-    <ol>
-        <li><strong>Conversión a Radianes:</strong> Las funciones trigonométricas requieren ángulos en radianes, por lo que todas las latitudes y longitudes se convierten de grados a radianes.</li>
-        <li><strong>Cálculo de Deltas:</strong> Se calcula la diferencia de latitud (Δlat) y longitud (Δlon) entre los dos puntos.</li>
-        <li><strong>Cálculo de 'a':</strong> Se aplica la parte central de la fórmula: <code>a = sin²(Δlat/2) + cos(lat₁) * cos(lat₂) * sin²(Δlon/2)</code>. Esta variable representa el cuadrado de la mitad de la longitud de la cuerda entre los dos puntos.</li>
-        <li><strong>Cálculo de 'c':</strong> Se calcula la distancia angular: <code>c = 2 * atan2(√a, √(1-a))</code>.</li>
-        <li><strong>Distancia Final:</strong> Se multiplica la distancia angular <code>c</code> por el radio de la Tierra (aprox. 6,371 km) para obtener la distancia final en metros.</li>
-    </ol>
-    <p>Si la <code>distancia calculada ≤ radio de la geocerca</code>, el algoritmo concluye que el autobús está en esa parada y termina.</p>
-
-    <h4>Fase 2: Verificación de Tramos (Si no está en una Parada)</h4>
-    <p>Si el autobús no está dentro de ninguna geocerca, el sistema debe encontrar el segmento de ruta más cercano.</p>
-    <ol>
-        <li><strong>Proyección a un Plano 2D:</strong> Dado que las calles son tramos cortos, la curvatura de la Tierra es despreciable. El algoritmo proyecta las coordenadas del autobús y del segmento a un plano cartesiano (X, Y) en metros. Esto permite usar geometría euclidiana simple y rápida.</li>
-        <li><strong>Proyección de Vectores:</strong> Se utiliza el producto punto para proyectar la posición del autobús sobre la línea del segmento. Esto calcula un parámetro <code>t</code> que indica la ubicación del punto más cercano en la línea. Si <code>0 ≤ t ≤ 1</code>, el punto más cercano está dentro del segmento; de lo contrario, está en una de las terminaciones (nodos).</li>
-        <li><strong>Cálculo de Distancia Perpendicular:</strong> Usando el Teorema de Pitágoras, se calcula la distancia entre la posición del autobús y el punto más cercano encontrado en el segmento.</li>
-        <li><strong>Decisión Final:</strong> El algoritmo itera sobre todos los segmentos y se queda con el que produzca la menor distancia. Si esta <code>distancia mínima ≤ tolerancia de ruta</code> (ej. 35 metros), se concluye que el autobús está en ese tramo. De lo contrario, se considera "fuera de ruta".</li>
-    </ol>
-</div>
 
 <script>
     let routePoints = [
