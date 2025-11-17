@@ -25,6 +25,9 @@ const GUAYANA_BBOX = "8.21,-62.88,8.39,-62.60";
 
 //---------------------Funcion que renderiza el mapa------------------------
 const loadMapHtml = async () => {
+    console.log()
+    console.log(' Recarga del mapa ♻️')
+    console.log()
   const asset = Asset.fromModule(require('../../assets/map.html'));
   await asset.downloadAsync();
   return asset.uri;
@@ -35,6 +38,9 @@ const loadMapHtml = async () => {
 // FUNCIÓN DE CONSULTA A OVERPASS
 // -------------------------------------------------------------
 const fetchGuayanaBusStops = async () => {
+    console.log()
+    console.log(' -->fetchGuayanaBusStops ')
+    console.log()
     // La consulta se mantiene, solo se reescribe para claridad
     const overpassQuery = `
         [out:json][timeout:30];
@@ -62,8 +68,8 @@ export default function WebMap ()  {
     const [loading, setLoading] = useState(true);
 
     // Nuevo estado para rastrear si el mapa y las paradas están listos.
-    const [isMapReady, setIsMapReady] = useState(false);
-    const [stopsInjected, setStopsInjected] = useState(false);
+    const [isMapReady, setIsMapReady] = useState(false);//espera al flag MAP_LOADED para volverse true y luego false
+    const [stopsInjected, setStopsInjected] = useState(false);// es para verificar cuando la inyeccion js a sido exitosa
 
     const [userLocation, setUserLocation] = useState(null);//--ubicacion del usuario en tiempo real
 
@@ -76,8 +82,9 @@ export default function WebMap ()  {
   useEffect(() => {
     loadMapHtml().then(setMapHtmlUri);
   }, []);
- // --- Lógica de Expo Location ---
+ // --- Lógica de Expo Location  ✅ ---
   useEffect(() => {
+    console.log('-----Solicitando permisos de Locacion------')
         let locationSubscription = null;
         const requestPermissionsAndGetLocation = async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
@@ -101,6 +108,7 @@ export default function WebMap ()  {
                   setLoading(false);
                 }
             );
+            console.log('--------> Permisos de ubicacion aprobados ♿ ☑️------')
         };
         requestPermissionsAndGetLocation();
         // Limpieza: detener la suscripción cuando el componente se desmonte
@@ -111,10 +119,10 @@ export default function WebMap ()  {
         };
     }, []);
 
-//-----------------UseEffect para actualizar el marcador--------------------
+//-----------------UseEffect para actualizar el marcador del usuario ✅ --------------------
 useEffect(() => {
     // A. Actualizar Marcador del Usuario
-    if (userLocation && webviewRef.current) {
+    if (userLocation && webviewRef.current && isMapReady) {
         const { latitude, longitude } = userLocation;
         // Llama a la función updateUserMarker
         const userJsCode = `updateUserMarker(${latitude}, ${longitude}); true;`;
@@ -122,39 +130,35 @@ useEffect(() => {
     }
     
 // Depende SOLAMENTE de userLocation para el tiempo real.
-}, [userLocation]);
+}, [userLocation,isMapReady]);
 
 useEffect(() => {
-    // Escucha el evento de carga del mapa, si es posible, es más seguro.
-    // Si no, se ejecuta apenas el componente monte y tenga acceso a webviewRef.
-    if (webviewRef.current) {
-        // B. Cargar Paradas de Ciudad Guayana
-        // Utilizamos la bandera 'busStopsLoaded' para asegurar la ejecución única
-        if (!webviewRef.current.busStopsLoaded) {
-            fetchGuayanaBusStops()
-                .then(overpassData => {
-                    if (overpassData) {
-                        const dataString = JSON.stringify(overpassData);
-                        
-                        // Llama a la función de Leaflet
-                        const stopsJsCode = `renderBusStops(${dataString}); true;`;
-                        webviewRef.current.injectJavaScript(stopsJsCode);
-                        
-                        // Marca la carga como exitosa para no recargar
-                        webviewRef.current.busStopsLoaded = true;
-                    }
-                });
-        }
+    // Solo si el mapa está listo Y las paradas no han sido inyectadas AHORA
+    if (isMapReady && webviewRef.current && !stopsInjected) {
+        fetchGuayanaBusStops()
+            .then(overpassData => {
+                if (overpassData) {
+                    const dataString = JSON.stringify(overpassData);
+                    
+                    // Inyectar JavaScript en el WebView
+                    const stopsJsCode = `renderBusStops(${dataString}); true;`;
+                    webviewRef.current.injectJavaScript(stopsJsCode);
+                    
+                    setStopsInjected(true); // Marca la inyección como exitosa
+                }
+            })
+            .catch(error => console.error("Error al inyectar paradas:", error));
     }
-    
-    
-}, []);
+// Depende de isMapReady (espera a que el WebView termine de cargar el mapa) y stopsInjected.
+}, [isMapReady, stopsInjected]);
 
 // 1. Manejador de Mensajes (No cambiar)
 const handleWebViewMessage = (event) => {
     const message = event.nativeEvent.data;
     if (message === 'MAP_LOADED') {
-        setIsMapReady(true); // <-- Esto desbloquea el siguiente useEffect
+        setIsMapReady(true); // El mapa está listo
+        setStopsInjected(false); // <--- AÑADE ESTO
+        // Si el mapa se recarga, debemos volver a inyectar las paradas.
     }
 };
    // en el caso de que maphtmlUri se encuentre vacio se graficara una pantalla de carga
