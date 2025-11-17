@@ -1,0 +1,59 @@
+{
+  "expo": {
+    "name": "Bus-Tracker-CiudBolivar",
+    "slug": "Bus-Tracker-CiudBolivar",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/img/icono.png",
+    "scheme": "bustrackerciudbolivar",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/img/icono.png",
+        "backgroundImage": "./assets/img/icono.png",
+        "monochromeImage": "./assets/img/icono.png"
+      },
+      "package": "com.anonymous.BusTrackerCiudBolivar"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "086d5cbd-eb33-4cc1-9cfd-740340a8a1ff"
+      }
+    }
+    
+  },
+  "web": {
+    "output": "static",
+    "favicon": "./assets/images/favicon.png"
+  },
+  "plugins": [
+    "expo-router",
+    "expo-web-browser", 
+    [
+      "expo-splash-screen",
+      {
+        "resizeMode": "contain",
+        "backgroundColor": "#FFFFFF"
+      }
+    ],
+    [
+      "expo-location",
+      {
+       
+        "isBackgroundLocationEnabled": true,
+        "locationWhenInUsePermission": "Permitir a $(PRODUCT_NAME) usar tu ubicación para mostrarte en el mapa.",
+        "locationAlwaysPermission": "Permitir a $(PRODUCT_NAME) usar tu ubicación para el rastreo de la ruta en segundo plano."
+        
+      }
+    ]
+  ],
+  "experiments": {
+    "typedRoutes": true,
+    "reactCompiler": true
+  }
+}
