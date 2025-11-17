@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator, Alert, TextInput, TouchableO
 import * as Location from 'expo-location'; 
 import Ionicons from 'react-native-vector-icons/Ionicons'; // Para los íconos
 
-export default function Home2 () {
+export default function Home () {
   const [ubicacionActual, setUbicacionActual] = useState('Buscando ubicación...');
   const [destinoInput, setDestinoInput] = useState('');
   const [destinoResultado, setDestinoResultado] = useState(null);

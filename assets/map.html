@@ -95,8 +95,7 @@
                 userMarker = L.marker(latlng, { icon: userIcon }).addTo(map)
                     .bindPopup("Estás aquí").openPopup();
             }
-            // NO volamos el mapa aquí, dejamos que la función de búsqueda lo haga o se quede en el centro inicial
-            // window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOCATION_UPDATED', lat, lon }));
+                map.setView(latlng, 15);
         };
         // Nueva función JS para marcar una ubicación buscada
         window.updateSearchMarker = function(lat, lon, address) {
@@ -135,7 +134,7 @@
             
             const stopIcon = L.divIcon({
                 className: 'bus-stop-icon',
-                html: '<div style="background-color: #e53935; border-radius: 50%; width: 12px; height: 12px; border: 2px solid white;"></div>', 
+                html: '<div style="background-color: #9fc5e8; border-radius: 50%; width: 12px; height: 12px; border: 2px solid white;"></div>', 
                 iconSize: [16, 16],
                 iconAnchor: [8, 8]
             });
@@ -152,10 +151,11 @@
                 }
             });
             
-            // CENTRAR el mapa en Ciudad Guayana después de cargar las paradas
-            const guayanaBounds = [[8.21, -62.88], [8.39, -62.60]];
-            map.fitBounds(guayanaBounds);
         }
+    
+    isMapInitialized = true;
+    // ESTA LÍNEA ES CRUCIAL
+    window.ReactNativeWebView.postMessage('MAP_LOADED');
     };
         // Función de manejo de clic (Sin cambios)
         map.on('click', function(e) {

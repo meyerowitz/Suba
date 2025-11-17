@@ -4,8 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from 'react-native-vector-icons/Ionicons'; // Para usar íconos, puedes instalar react-native-vector-icons
 
-import Home2 from './Home2';
-import WebMap2 from './WebMap2';
+import Home from './Home';
 import WebMap from './WebMap';
 
 const Tab = createBottomTabNavigator();
@@ -43,8 +42,8 @@ function MyTabs() {
         headerShown: false, // Oculta el encabezado superior si no lo necesitas
       })}
     >
-      <Tab.Screen name="Home" component={Home2} />
-      <Tab.Screen name="Map" component={WebMap2} />
+      <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="Map" component={WebMap} />
     </Tab.Navigator>
   );
 }
