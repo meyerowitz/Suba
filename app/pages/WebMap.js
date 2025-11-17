@@ -2,8 +2,6 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, StyleSheet, ActivityIndicator, Alert, Text, Platform, TextInput, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
-// 1. Configuración de Tiled y Estilo
-// Usaremos un tema más atractivo (CartoDB Positron) y configuraciones estándar de Leaflet.
 
 const TILE_LAYER = 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png';
 const ATTRIBUTION = '';
@@ -41,7 +39,7 @@ const generateHtmlContent = () => `
             border-radius: 50%;
             border: 3px solid white;
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-            animation: pulse 1.5s infinite;
+            animation: pulse 4.5s infinite;
         }
         @keyframes pulse {
             0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4); }
@@ -197,12 +195,10 @@ export default function MapScreen2() {
                 setLoading(false);
                 return;
             }
-            // Empezar a monitorear la posición del usuario
-            // Esto es más eficiente que solo obtener una vez
             locationSubscription = await Location.watchPositionAsync(
                 {
                    accuracy: Location.Accuracy.BestForNavigation,
-                    timeInterval: 5000, // Actualiza cada 5 segundos
+                    timeInterval: 360000, // Actualiza cada 6 minutos
                     distanceInterval: 10, // Actualiza si se mueve 10 metros
                 },
                 (location) => {

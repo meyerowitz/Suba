@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>OpenStreetMap con Leaflet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+        }
+        #mapid {
+            height: 100vh;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+        .user-marker-icon {
+            background-color: #007bff;
+            width: 20px;
+            height: 20px;
+            display: block;
+            left: -10px;
+            top: -10px;
+            position: relative;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 123, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
+        }
+        .search-marker-icon {
+            background-color: #ff0000; /* Un color diferente para el marcador de búsqueda */
+            width: 20px;
+            height: 20px;
+            display: block;
+            left: -10px;
+            top: -10px;
+            position: relative;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="mapid"></div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Inicialización del Mapa
+        let map;
+        let userMarker = null;
+        let allBusStopsData = null;
+        let busStopsLayer = null;
+        let searchMarker = null; // Nuevo marcador para la ubicación buscada
+        let isMapInitialized = false;
+        
+
+        const INITIAL_CENTER = { latitude: 10.5000, longitude: -66.9167 }
+        const initialLat = INITIAL_CENTER.latitude;
+        const initialLon = INITIAL_CENTER.longitude;
+        function initializeMap() {
+            if (isMapInitialized) return;
+            map = L.map('mapid', {
+                zoomControl: false
+            }).setView([initialLat, initialLon], 13);
+            L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: ''
+            }).addTo(map);
+            
+
+            isMapInitialized = true;
+            window.ReactNativeWebView.postMessage('MAP_LOADED');
+        }
+        initializeMap();
+
+        // Función JS que será llamada desde React Native para actualizar la ubicación del USUARIO
+        window.updateUserMarker = function(lat, lon) {
+            const latlng = [lat, lon];
+            const userIcon = L.divIcon({
+                className: 'user-marker-icon',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10],
+                popupAnchor: [0, -10]
+            });
+            if (userMarker) {
+                userMarker.setLatLng(latlng);
+            } else {
+                userMarker = L.marker(latlng, { icon: userIcon }).addTo(map)
+                    .bindPopup("Estás aquí").openPopup();
+            }
+            // NO volamos el mapa aquí, dejamos que la función de búsqueda lo haga o se quede en el centro inicial
+            // window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'LOCATION_UPDATED', lat, lon }));
+        };
+        // Nueva función JS para marcar una ubicación buscada
+        window.updateSearchMarker = function(lat, lon, address) {
+          const latlng = [lat, lon];
+            const searchIcon = L.divIcon({
+                className: 'search-marker-icon',
+                iconSize: [20, 20],
+                iconAnchor: [10, 10],
+                popupAnchor: [0, -10]
+            });
+            if (searchMarker) {
+                searchMarker.setLatLng(latlng);
+                searchMarker.setPopupContent(address);
+            } else {
+                searchMarker = L.marker(latlng, { icon: searchIcon }).addTo(map)
+                    .bindPopup(address);
+            }
+            searchMarker.openPopup();
+            // Centrar el mapa en la ubicación buscada
+            map.flyTo(latlng, 15, {
+                duration: 1.5
+            });
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SEARCH_UPDATED', lat, lon, address }));
+        };
+
+        // 3. Función de Renderizado de Paradas (Nueva)
+        window.renderBusStops = function(overpassData) {
+        // Limpiar paradas anteriores
+        if (busStopsLayer) {
+            map.removeLayer(busStopsLayer);
+        }
+        
+        busStopsLayer = L.layerGroup().addTo(map);
+
+        if (overpassData && overpassData.elements) {
+            
+            const stopIcon = L.divIcon({
+                className: 'bus-stop-icon',
+                html: '<div style="background-color: #e53935; border-radius: 50%; width: 12px; height: 12px; border: 2px solid white;"></div>', 
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            });
+
+            overpassData.elements.forEach(element => {
+                if (element.type === 'node') {
+                    const lat = element.lat;
+                    const lon = element.lon;
+                    const name = (element.tags && element.tags.name) ? element.tags.name : 'Parada de bus';
+                    
+                    L.marker([lat, lon], { icon: stopIcon })
+                        .bindPopup(`<b>Parada:</b> ${name}`)
+                        .addTo(busStopsLayer);
+                }
+            });
+            
+            // CENTRAR el mapa en Ciudad Guayana después de cargar las paradas
+            const guayanaBounds = [[8.21, -62.88], [8.39, -62.60]];
+            map.fitBounds(guayanaBounds);
+        }
+    };
+        // Función de manejo de clic (Sin cambios)
+        map.on('click', function(e) {
+            const latlng = { type: 'MAP_CLICK', lat: e.latlng.lat, lng: e.latlng.lng };
+            window.ReactNativeWebView.postMessage(JSON.stringify(latlng));
+        });
+    </script>
+</body>
+</html>
