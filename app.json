@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.anonymous.BusTrackerCiudBolivar"
     },
     "android": {
       "adaptiveIcon": {
@@ -20,38 +21,35 @@
       },
       "package": "com.anonymous.BusTrackerCiudBolivar"
     },
+    "plugins": [
+      "expo-router",
+      "expo-web-browser",
+      [
+        "expo-splash-screen",
+        {
+          "resizeMode": "contain",
+          "backgroundColor": "#FFFFFF"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "isBackgroundLocationEnabled": true,
+          "locationWhenInUsePermission": "Permitir a $(PRODUCT_NAME) usar tu ubicación para mostrarte en el mapa.",
+          "locationAlwaysPermission": "Permitir a $(PRODUCT_NAME) usar tu ubicación para el rastreo de la ruta en segundo plano."
+        }
+      ]
+    ],
     "extra": {
       "eas": {
         "projectId": "086d5cbd-eb33-4cc1-9cfd-740340a8a1ff"
       }
     }
-    
   },
   "web": {
     "output": "static",
     "favicon": "./assets/images/favicon.png"
   },
-  "plugins": [
-    "expo-router",
-    "expo-web-browser", 
-    [
-      "expo-splash-screen",
-      {
-        "resizeMode": "contain",
-        "backgroundColor": "#FFFFFF"
-      }
-    ],
-    [
-      "expo-location",
-      {
-       
-        "isBackgroundLocationEnabled": true,
-        "locationWhenInUsePermission": "Permitir a $(PRODUCT_NAME) usar tu ubicación para mostrarte en el mapa.",
-        "locationAlwaysPermission": "Permitir a $(PRODUCT_NAME) usar tu ubicación para el rastreo de la ruta en segundo plano."
-        
-      }
-    ]
-  ],
   "experiments": {
     "typedRoutes": true,
     "reactCompiler": true
