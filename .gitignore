@@ -2,6 +2,7 @@
 /node_modules/.bin
 node_modules/.bin/browserslist
 /node_modules
+bus-tracking-api/node_modules/
 
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
