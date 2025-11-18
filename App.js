@@ -6,10 +6,11 @@ import {
   TouchableOpacity, 
   StyleSheet, 
   StatusBar,
-  ImageBackground, // Importamos el componente para usar la imagen de fondo
+  ImageBackground, 
 } from 'react-native';
 
 // --- COLORES PRINCIPALES DEL PROYECTO SUBA ---
+// tal vez deba cambiar los colores a lo nuevo
 const COLORS = {
   primaryBlue: '#102957',     // Azul Oscuro (SUBA)
   secondaryYellow: '#FFCD00', // Amarillo (SUBA)
@@ -21,11 +22,9 @@ const COLORS = {
   lightOverlay: 'rgba(255, 255, 255, 0.95)', // Fondo para el selector desplegable
 };
 
-// *****************************************************************
-// RUTA DE IMAGEN: Por favor, ajusta esta ruta si es necesario.
-// *****************************************************************
+
 const BACKGROUND_IMAGE_SOURCE = require('./assets/fondo_suba.png'); 
-cerrar 
+
 
 // Componente principal para la vista del conductor
 const DriverDashboardScreen = () => {
