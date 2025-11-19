@@ -82,7 +82,7 @@
     map = L.map('mapid', {
         zoomControl: false
     }).setView([initialLat, initialLon], 13);
-    L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: ''
     }).addTo(map);

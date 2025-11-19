@@ -27,7 +27,15 @@
     },
     "plugins": [
       "expo-web-browser",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true 
+          }
+        }
+      ]
     ]
   },
   "web": {
