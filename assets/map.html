@@ -17,7 +17,7 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
         }
         .user-marker-icon {
-            background-color: #00ff44;
+            background-color: #00d9ff;
             width: 20px;
             height: 20px;
             display: block;
@@ -25,13 +25,19 @@
             top: -10px;
             position: relative;
             border-radius: 50%;
-            border: 3px solid rgb(0, 115, 40);
+            border: 3px solid rgb(0, 102, 115);
             box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-            animation: pulse 1.5s infinite;
+            animation: pulseblue 1.5s infinite;
         }
-        @keyframes pulse {
+        @keyframes pulseblue {
             0% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0.4); }
             70% { box-shadow: 0 0 0 10px rgba(0, 123, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
+        }
+
+        @keyframes pulsepink {
+            0% { box-shadow: 0 0 0 0 rgba(162, 0, 255, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(106, 0, 255, 0); }
             100% { box-shadow: 0 0 0 0 rgba(0, 123, 255, 0); }
         }
         .search-marker-icon {
@@ -47,19 +53,44 @@
             box-shadow: 0 0 5px rgba(255, 0, 0, 0.5);
         }
         .bus-marker-icon {
-    width: 20px;
-    height: 20px;
-    display: flex; 
-    justify-content: center;
-    align-items: center;
-}
+            width: 20px;
+            height: 20px;
+            display: flex; 
+            justify-content: center;
+            align-items: center;
+            
+        }
+
+        .bus-marker-icon .bus-icon-container {
+            /* Fondo, borde y forma del contenedor */
+            border-radius: 50%; /* Forma circular */
+            
+            /* Dimensiones (ajusta a tu gusto, deben ser menores o iguales a iconSize) */
+            width: 30px; 
+            height: 30px; 
+
+            /* Centrado de la imagen dentro del contenedor */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: pulsepink 1.5s infinite;
+            
+        }
+
+        /* Estilo para la imagen real */
+        .bus-marker-icon .bus-icon-image {
+            /* Asegura que la imagen no se desborde */
+            width: 100%; /* Por ejemplo, el 70% del contenedor */
+            height: 100%;
+            object-fit: contain; /* Asegura que la imagen se vea completa */
+        }
+
     </style>
 </head>
 <body>
     <div id="mapid"></div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Inicialización del Mapa
         let map;
         let busMarkers = {}
         let userMarker = null;
@@ -68,30 +99,26 @@
         let searchMarker = null; // Nuevo marcador para la ubicación buscada
         let isMapInitialized = false;
         
-
         const INITIAL_CENTER = { latitude: 10.5000, longitude: -66.9167 }
         const initialLat = INITIAL_CENTER.latitude;
         const initialLon = INITIAL_CENTER.longitude;
+        
         function initializeMap() {
-    if (isMapInitialized) return;
-    map = L.map('mapid', {
-        zoomControl: false
-    }).setView([initialLat, initialLon], 13);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
-        attribution: ''
-    }).addTo(map);
 
-    // Utilizamos map.whenReady para garantizar que Leaflet esté 100% listo.
-    map.whenReady(function() {
-        isMapInitialized = true;
-        // Solo enviamos el mensaje UNA VEZ aquí
-        if (window.ReactNativeWebView) {
-            window.ReactNativeWebView.postMessage('MAP_LOADED');
+            if (isMapInitialized) return;
+                map = L.map('mapid', {zoomControl: false}).setView([initialLat, initialLon], 13);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom: 19,attribution: ''}).addTo(map);
+
+            // Utilizamos map.whenReady para garantizar que Leaflet esté 100% listo.
+                map.whenReady(function() {
+                isMapInitialized = true;
+            // Solo enviamos el mensaje UNA VEZ aquí
+            if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage('MAP_LOADED');
+                }
+            });
         }
-    });
-}
-initializeMap();
+            initializeMap();
 
         // 1). Función JS que será llamada desde React Natve para actualizar la ubicación del USUARIO
         window.updateUserMarker = function(lat, lon) {
@@ -148,7 +175,7 @@ initializeMap();
             const stopIcon = L.divIcon({
                 className: 'bus-stop-icon',
                 html: '<div style="background-color: #0661BC; border-radius: 50%; width: 12px; height: 12px; border: 2px solid white;"></div>', 
-                iconSize: [16, 16],
+                iconSize: [10, 10],
                 iconAnchor: [8, 8]
             });
 
@@ -169,40 +196,39 @@ initializeMap();
     };
         
         // 4. Función para Renderizar los buses ubicados en la API
-    
-   window.renderBusLocations = function(busData) {
-    const activeBusIds = new Set();
-    const locationBusesMap = {}; // Mapa para agrupar buses por ubicación [lat, lon]
+        window.renderBusLocations = function(busData) {
+            const activeBusIds = new Set();
+            const locationBusesMap = {}; // Mapa para agrupar buses por ubicación [lat, lon]
 
-    // 1. Agrupar buses por ubicación exacta para identificar colisiones
-    busData.forEach(bus => {
-        // Usamos una clave con precisión alta para la agrupación
-        const key = `${bus.lat.toFixed(6)},${bus.lon.toFixed(6)}`;
-        if (!locationBusesMap[key]) {
-            locationBusesMap[key] = [];
-        }
-        locationBusesMap[key].push(bus);
-    });
+            // 1. Agrupar buses por ubicación exacta para identificar colisiones
+            busData.forEach(bus => {
+            // Usamos una clave con precisión alta para la agrupación
+            const key = `${bus.lat.toFixed(6)},${bus.lon.toFixed(6)}`;
+            if (!locationBusesMap[key]) {
+                locationBusesMap[key] = [];
+            }
+            locationBusesMap[key].push(bus);
+        });
 
-    // Constante de desplazamiento (ajusta este valor si necesitas más o menos separación)
-    const OFFSET = 0.00003; 
+            // Constante de desplazamiento (ajusta este valor si necesitas más o menos separación)
+            const OFFSET = 0.00003; 
 
-    // Icono para los buses (usamos la definición que ya tienes)
-    const busIcon = L.divIcon({
-        className: 'bus-marker-icon',
-        html: '<div style="background-color: #F54927; border-radius: 50%; width: 15px; height: 15px; border: 2px solid #F4320B;"><h>🚌</h></div>', 
-        iconSize: [20, 20],
-        iconAnchor: [10, 10]
-    });
+            // Icono para los buses (usamos la definición que ya tienes)
+            const busIcon = L.divIcon({
+                className: 'bus-marker-icon',
+                html: '<div class="bus-icon-container"><img src="./assets/img/autobus2.png" class="bus-icon-image" alt="Autobús"></div>', 
+                iconSize: [20, 20],
+                iconAnchor: [10, 10]
+            });
 
-    // 2. Iterar sobre las agrupaciones y renderizar con desplazamiento si es necesario
-    Object.values(locationBusesMap).forEach(busesInLocation => {
-        busesInLocation.forEach((bus, index) => {
-            const { bus_id, lat, lon, route, velocity } = bus;
-            activeBusIds.add(bus_id);
+            // 2. Iterar sobre las agrupaciones y renderizar con desplazamiento si es necesario
+            Object.values(locationBusesMap).forEach(busesInLocation => {
+                busesInLocation.forEach((bus, index) => {
+                    const { bus_id, lat, lon, route, velocity } = bus;
+                    activeBusIds.add(bus_id);
 
-            let adjustedLat = lat;
-            let adjustedLon = lon;
+                 let adjustedLat = lat;
+                    let adjustedLon = lon;
 
             // Aplicar desplazamiento solo si hay más de un bus
             if (busesInLocation.length > 1) {
@@ -239,6 +265,7 @@ initializeMap();
         }
     });
 };
+        
         map.on('click', function(e) {
             const latlng = { type: 'MAP_CLICK', lat: e.latlng.lat, lng: e.latlng.lng };
             window.ReactNativeWebView.postMessage(JSON.stringify(latlng));
