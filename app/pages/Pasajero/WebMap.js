@@ -1,10 +1,13 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { StyleSheet, View , ActivityIndicator, Alert,Text, Platform, TextInput, TouchableOpacity} from 'react-native';
 import WebView from 'react-native-webview';
+import { Picker } from '@react-native-picker/picker';
+import { Feather } from '@expo/vector-icons';
 import { Asset } from 'expo-asset';
 import * as Location from 'expo-location';
 
 import SearchRoot from '../../Components/SearchRoot';
+import Destinos from '../../Components/Destinos.json';
 
 // --- CONSTANTES DE LA API DEL BUS ---
 const BASE_URL = 'https://api-bus-w29v.onrender.com/api/v1'; 
@@ -12,7 +15,6 @@ const BUSES_API_URL = `${BASE_URL}/buses`; // GET para obtener todas las ubicaci
 const FETCH_INTERVAL = 5000; // Cargar buses cada 5 segundos (500ms)
 // BBOX estático para Ciudad Guayana: [LatSur, LonOeste, LatNorte, LonEste]
 const GUAYANA_BBOX = "8.21,-62.88,8.39,-62.60";
-
 //---------------------1) .Funcion que renderiza el mapa------------------------
 const loadMapHtml = async () => {
     console.log()
@@ -80,6 +82,7 @@ const fetchBusLocations = async () => {
     }
 };
 
+
 export default function WebMap ()  {
     //---------------Hooks------------------------------
     const webviewRef = useRef(null);//---cluster del mapa
@@ -92,10 +95,11 @@ export default function WebMap ()  {
 
     const [userLocation, setUserLocation] = useState(null);//--ubicacion del usuario en tiempo real
 
-    const [searchQuery, setSearchQuery] = useState('')//----Query de busquedas
-    const [searchResult, setSearchResult] = useState(null);//----Resultados de la busqueda
+    //const [searchQuery, setSearchQuery] = useState('')//----Query de busquedas
+    //const [searchResult, setSearchResult] = useState(null);//----Resultados de la busqueda
     const [isSearching, setIsSearching] = useState(false);//---Stado de la busqueda
 
+    const [selectedDestinationName, setSelectedDestinationName] = useState('');
     // NUEVO ESTADO para las ubicaciones de los buses
     const [busLocations, setBusLocations] = useState([]);
     //--------------------------------------------------
@@ -162,7 +166,7 @@ useEffect(() => {
 // Depende SOLAMENTE de userLocation para el tiempo real.
 }, [userLocation,isMapReady]);
 //-------------- 4) .UseEffect para cargar las paradas dentro de un pequeño BBOX------
-useEffect(() => {
+/*useEffect(() => {
     console.log()
     console.log(' marcador de las paradas de buses 📍 ')
     console.log()
@@ -183,7 +187,7 @@ useEffect(() => {
     }
 // Depende de isMapReady (espera a que el WebView termine de cargar el mapa) y stopsInjected.
 }, [isMapReady, stopsInjected]);
-
+*/
 //-----------------5) .UseEffect para cargar y renderizar la ubicación de los buses 🚌 --------------------
 useEffect(() => {
     let fetchBusesInterval;
@@ -237,6 +241,67 @@ const handleWebViewMessage = (event) => {
         // Si el mapa se recarga, debemos volver a inyectar las paradas.
     }
 };
+
+
+
+// --- 2. MANEJADOR DE BÚSQUEDA Y RUTEO ---
+const handleSearch = () => {
+    // 1. Validar pre-requisitos
+    if (!selectedDestinationName || !isMapReady || !webviewRef.current || !userLocation) {
+        // Alerta si falta la ubicación del usuario
+        if (!userLocation) {
+             Alert.alert("Error", "No se ha podido obtener tu ubicación actual.");
+        }
+        return; 
+    }
+
+    setIsSearching(true);
+
+    try {
+        console.log(`Buscando destino seleccionado: ${selectedDestinationName}`);
+        
+        // 2. Buscar destino
+        const destination = Destinos.find(
+            dest => dest.name === selectedDestinationName
+        );
+
+        if (destination) {
+            const userLat = userLocation.latitude;
+            const userLon = userLocation.longitude;
+            const destLat = destination.lat;
+            const destLon = destination.lon;
+            
+            // 3. Crear código JS para dibujar la ruta y animar la vista
+            // Se asume la existencia de una función 'drawRouteAndAnimate' en tu map.html
+            const routeJsCode = `
+                drawRouteAndAnimate(
+                    ${userLat}, 
+                    ${userLon}, 
+                    ${destLat}, 
+                    ${destLon}
+                ); 
+                true;
+            `;
+            
+            // 4. Inyectar el código
+            webviewRef.current.injectJavaScript(routeJsCode);
+            console.log(`Solicitud de ruteo y animación inyectada: (${userLat},${userLon}) a (${destLat},${destLon})`);
+
+        } else {
+            Alert.alert("Error", "El destino seleccionado no fue encontrado.");
+        }
+
+    } catch (error) {
+        console.error("Error al ejecutar la búsqueda:", error);
+        Alert.alert("Error", "Ocurrió un error interno al buscar la ubicación.");
+    } finally {
+        // En este caso, setIsSearching debería ser false solo después de que el mapa 
+        // responda que terminó el ruteo, pero lo dejamos aquí como fallback rápido.
+        // Lo ideal sería manejar la finalización desde el WebView.
+        setIsSearching(false);
+    }
+};
+
    // en el caso de que maphtmlUri se encuentre vacio se graficara una pantalla de carga
   if (!mapHtmlUri) {
         return (
@@ -247,6 +312,8 @@ const handleWebViewMessage = (event) => {
            );
    
   }
+
+
   
       // --- Renderizado ---
   
@@ -261,30 +328,7 @@ const handleWebViewMessage = (event) => {
       }
   return (
     <View style={styles.container}>
-        
-        <View style={{flexDirection: 'row', marginBottom: 10,padding: 5,backgroundColor: '#fff',borderRadius: 8,elevation: 2,shadowColor: '#000', shadowOffset: { width: 0, height: 1 },shadowOpacity: 0.1, shadowRadius: 3,}}>
-            <TextInput style={{flex: 1,height: 40,paddingHorizontal: 10,fontSize: 16,color: '#333',}} 
-                placeholder="Ej: Plaza Bolívar, Caracas" 
-                value={searchQuery} 
-                onChangeText={setSearchQuery}
-                onSubmitEditing={()=>{}} // Permite buscar al presionar "Enter"
-                editable={!isSearching}/>
-            <TouchableOpacity
-                style={{backgroundColor: '#007bff',borderRadius: 5,paddingHorizontal: 15,paddingVertical: 8,justifyContent: 'center',alignItems: 'center', marginLeft: 8,minWidth: 70,}}
-                onPress={()=>{}}
-                disabled={isSearching} >
-        
-                {isSearching ? (
-                    <ActivityIndicator size="small" color="#fff" />
-                ) : (
-                    <Text style={{color: '#fff',fontWeight: 'bold', fontSize: 16,}}>
-                        Buscar
-                    </Text>
-                )}
-                    </TouchableOpacity>
-        
-        </View>
-
+       
         <View style={{flex: 1, borderRadius: 12,overflow: 'hidden',shadowColor: '#000',shadowOffset: { width: 0, height: 4 },shadowOpacity: 0.1,shadowRadius: 5,elevation: 8,}}>
              <WebView
                 ref={webviewRef}
@@ -297,7 +341,33 @@ const handleWebViewMessage = (event) => {
                 
             />
         </View>
-        <SearchRoot></SearchRoot>
+        <View style={{backgroundColor:'white', height:'30%', width:'104.5%', position:'absolute', bottom:'-1%', left:'0.5%', borderRadius: 12,shadowColor: '#000',shadowOffset: { width: 0, height: 4 },shadowOpacity: 0.1,shadowRadius: 5,elevation: 8, padding:'5%'}}>
+            <View style={{flexDirection: 'row', marginBottom: 10,padding: 5,backgroundColor: '#fff',borderRadius: 8,elevation: 2,shadowColor: '#000', shadowOffset: { width: 0, height: 1 },shadowOpacity: 0.1, shadowRadius: 3,}}>
+                <Picker
+                    selectedValue={selectedDestinationName}
+                    onValueChange={(itemValue) => setSelectedDestinationName(itemValue)}
+                    style={{ height: 50, width: '80%' }}
+                    enabled={!isSearching}
+                >
+                <Picker.Item label="Selecciona un destino..." value="" enabled={false} />
+                    {Destinos.map((dest) => (
+                        <Picker.Item key={dest.name} label={dest.name} value={dest.name} />
+                    ))}
+                </Picker>
+    
+                <TouchableOpacity
+                    style={{ backgroundColor: '#007bff', borderRadius: 9, paddingHorizontal: 8, paddingVertical: 8, justifyContent: 'center', alignItems: 'center', minWidth: 45, marginTop: 8 }}
+                    onPress={handleSearch}
+                    disabled={isSearching || !selectedDestinationName}>
+        
+                    {isSearching ? (
+                        <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                    <Feather name="search" size={24} color="#ffffffff" />
+                    )}
+                </TouchableOpacity>
+            </View>
+        </View>
      
     </View>
   );
@@ -323,4 +393,6 @@ const styles = StyleSheet.create({
         color: '#555',
     },
 
+
+    
 });

@@ -3,7 +3,8 @@
 <head>
     <title>OpenStreetMap con Leaflet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
     <style>
         body {
             margin: 0;
@@ -90,6 +91,7 @@
 <body>
     <div id="mapid"></div>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
     <script>
         let map;
         let busMarkers = {}
@@ -98,6 +100,7 @@
         let busStopsLayer = null;
         let searchMarker = null; // Nuevo marcador para la ubicación buscada
         let isMapInitialized = false;
+        let hasCenteredOnUser = false;
         
         const INITIAL_CENTER = { latitude: 10.5000, longitude: -66.9167 }
         const initialLat = INITIAL_CENTER.latitude;
@@ -135,7 +138,15 @@
                 userMarker = L.marker(latlng, { icon: userIcon }).addTo(map)
                     .bindPopup("Estás aquí").openPopup();
             }
-                map.setView(latlng, 15);
+                // --> LÓGICA DE CENTRADO DE CÁMARA UNA SOLA VEZ <--
+    if (!hasCenteredOnUser) {
+        // Usamos flyTo para una transición suave en lugar de setView abrupto
+        map.flyTo(latlng, 15, {
+            duration: 1.5 // Animación de 1.5 segundos
+        });
+        hasCenteredOnUser = true; // Establecemos la bandera en true para que no se vuelva a centrar automáticamente
+        console.log("Mapa centrado en la ubicación inicial del usuario.");
+    }
         };
         // 2). Nueva función JS para marcar una ubicación buscada
         window.updateSearchMarker = function(lat, lon, address) {
@@ -266,6 +277,83 @@
     });
 };
         
+
+        // Variable global para el control de ruteo
+let routingControl = null;
+
+// =========================================================
+// FUNCIÓN PRINCIPAL: DIBUJAR RUTA Y ANIMAR
+// =========================================================
+function drawRouteAndAnimate(startLat, startLon, endLat, endLon) {
+    console.log("Iniciando ruteo y animación con estilo...");
+
+    // 1. Eliminar cualquier ruta anterior si existe
+    if (routingControl) {
+        map.removeControl(routingControl);
+        routingControl = null;
+    }
+
+    // 2. Definir los puntos de inicio y fin
+    const startWaypoint = L.latLng(startLat, startLon);
+    const endWaypoint = L.latLng(endLat, endLon);
+    
+    // 3. Crear el control de ruteo con personalizaciones
+    routingControl = L.Routing.control({
+        waypoints: [
+            startWaypoint,
+            endWaypoint
+        ],
+        routeWhileDragging: false,
+        addWaypoints: false, 
+        
+        // *******************************************
+        // ⭐ CONFIGURACIÓN PARA OCULTAR EL PANEL ⭐
+        // collaspible: permite que el panel se pueda abrir/cerrar.
+        // collapsed: lo inicia en estado cerrado.
+        // *******************************************
+        collapsible: true, 
+        collapsed: true,
+       
+        // OCULTAR MARCADOR DE ORIGEN
+        createMarker: function(i, waypoint, n) {
+            if (i === 0) {
+                // Ocultar origen
+                return L.marker(waypoint.latLng, {
+                    icon: L.divIcon({ className: 'hidden-marker', iconSize: [0, 0] })
+                });
+            } else {
+                // Dejar marcador de destino
+                return L.marker(waypoint.latLng, {}).bindPopup('Destino');
+            }
+        },
+        
+        router: L.Routing.osrmv1(), 
+        showAlternatives: false,
+        language: 'es'
+    }).addTo(map);
+
+    routingControl.on('routesfound', function(e) {
+    // Llamamos al método collapse() para asegurar que se cierre.
+    // Usamos un pequeño delay (50ms) para que no interfiera con el renderizado del plugin.
+    setTimeout(function() {
+        routingControl.getPlan().set
+        routingControl.collapse();
+    }, 50);
+});
+    // 4. ANIMACIÓN (Zoom Suave y Acercamiento)
+    const bounds = L.latLngBounds([startWaypoint, endWaypoint]);
+    
+    map.flyToBounds(bounds, {
+        padding: L.point(50, 50),
+        duration: 2.0,
+        easeLinearity: 0.5 
+    });
+}
+
+// =========================================================
+
+
+
         map.on('click', function(e) {
             const latlng = { type: 'MAP_CLICK', lat: e.latlng.lat, lng: e.latlng.lng };
             window.ReactNativeWebView.postMessage(JSON.stringify(latlng));

@@ -1,0 +1,26 @@
+[
+  {
+    "name": "UNEXPO",
+    "address": "Universidad Nacional Experimental Politécnica (UNEXPO), Puerto Ordaz",
+    "lat": 8.2831,
+    "lon": -62.7212
+  },
+  {
+    "name": "UNEG (Villa Atlántico)",
+    "address": "Universidad Nacional Experimental de Guayana, Sede Villa Atlántico",
+    "lat": 8.2804,
+    "lon": -62.7099
+  },
+  {
+    "name": "UNEG (Villa Asia)",
+    "address": "Universidad Nacional Experimental de Guayana, Sede Villa Asia",
+    "lat": 8.2938,
+    "lon": -62.7289
+  },
+  {
+    "name": "La Churata",
+    "address": "Centro Comercial La Churata, Puerto Ordaz",
+    "lat": 8.3094,
+    "lon": -62.7265
+  }
+]
